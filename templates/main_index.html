@@ -1,0 +1,68 @@
+<!-- chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Chat Box</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <style>
+        /* Basic styles for chat box */
+        #chatBox {
+            width: 300px;
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+        #messageInput {
+            width: 240px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <input type="text" id="userName" placeholder="Enter your name..." required>
+        <button id="nameSubmit">Join Chat</button>
+    </div>
+    <div id="chatBox" style="display: none;"></div>
+    <input type="text" id="messageInput" placeholder="Type a message..." style="display: none;">
+    <button id="sendButton" style="display: none;">Send</button>
+
+    <script>
+        const socket = io();
+        const userNameInput = document.getElementById('userName');
+        const nameSubmit = document.getElementById('nameSubmit');
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        nameSubmit.addEventListener('click', () => {
+            const userName = userNameInput.value;
+            if (userName) {
+                socket.emit('join', { user: userName }); // Emit join event
+                chatBox.style.display = 'block'; // Show chat box
+                messageInput.style.display = 'block'; // Show message input
+                sendButton.style.display = 'block'; // Show send button
+                userNameInput.disabled = true; // Disable name input
+            }
+        });
+
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message) {
+                const data = { user: userNameInput.value, message: message };
+                socket.emit('send_message', data); // Send message to server
+                messageInput.value = ''; // Clear input
+            }
+        });
+
+        socket.on('receive_message', (data) => {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${data.user}: ${data.message}`; // Include user name
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+        });
+    </script>
+</body>
+</html>
